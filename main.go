@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"os"
 
@@ -10,13 +11,30 @@ import (
 
 var ROWS, COLS int //width and height of the terminal
 var offsetX, offsetY int
+var sourceFile string
 
-var textBuffer = [][]rune{
-	{'h', 'e', 'l', 'l', 'o'},
-	{'w', 'o', 'r', 'l', 'd'},
+var textBuffer = [][]rune{}
+
+func readFile(filename string) {
+	file, err := os.Open(filename)
+	if err != nil {
+		fmt.Println("Error opening file:", err)
+		return
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		line := scanner.Text()
+		textBuffer = append(textBuffer, []rune(line))
+	}
+
+	if err := scanner.Err(); err != nil {
+		fmt.Println("Error reading file:", err)
+	}
 }
 
-// displaying the text buffers
+// Displaying the text buffers
 func displayTextBuffer() {
 	var row, col int
 	for row = 0; row < ROWS; row++ {
@@ -49,6 +67,14 @@ func runEditor() {
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
+	}
+	if len(os.Args) > 1 {
+		sourceFile = os.Args[1]
+		readFile(sourceFile)
+	} else {
+		textBuffer = append(textBuffer, []rune{})
+		sourceFile = "out.txt"
+
 	}
 	ROWS, COLS = termbox.Size()
 	ROWS--
