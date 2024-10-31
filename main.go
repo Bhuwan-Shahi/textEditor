@@ -56,6 +56,29 @@ func insertRune(event termbox.Event) {
 	currentCol++
 }
 
+func deleteRune() {
+	if currentCol > 0 {
+		currentCol--
+		deleteLine := make([]rune, len(textBuffer[currentRow])-1)
+		copy(deleteLine[:currentCol], textBuffer[currentRow][:currentCol])
+		copy(deleteLine[currentCol:], textBuffer[currentRow][currentCol+1:])
+		textBuffer[currentRow] = deleteLine
+	} else if currentRow > 0 {
+		appendline := make([]rune, len(textBuffer[currentRow]))
+		copy(appendline, textBuffer[currentRow][currentCol:])
+		newTextBuffer := make([][]rune, len(textBuffer)-1)
+		copy(newTextBuffer[:currentRow], textBuffer[:currentRow])
+		copy(newTextBuffer[currentRow:], textBuffer[currentRow+1:])
+		textBuffer = newTextBuffer
+		currentRow--
+		currentCol = len(textBuffer[currentRow])
+		insertLine := make([]rune, len(textBuffer[currentRow])+len(appendline))
+		copy(insertLine[:len(textBuffer[currentRow])], textBuffer[currentRow])
+		copy(insertLine[len(textBuffer[currentRow]):], appendline)
+		textBuffer[currentRow] = insertLine
+	}
+}
+
 // Scroling
 func scrollTextBuffer() {
 	if currentRow < offsetRow {
@@ -171,6 +194,12 @@ func processKeyPress() {
 
 	} else {
 		switch keyEvent.Key {
+		case termbox.KeyBackspace:
+			deleteRune()
+			modified = true
+		case termbox.KeyBackspace2:
+			deleteRune()
+			modified = true
 		case termbox.KeyTab:
 			if mode == 1 {
 				for i := 0; i < 4; i++ {
