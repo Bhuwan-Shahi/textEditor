@@ -41,8 +41,23 @@ func readFile(filename string) {
 	}
 }
 
+func insertRune(event termbox.Event) {
+	insertrune := make([]rune, len(textBuffer[currentRow])+1)
+	copy(insertrune[:currentCol], textBuffer[currentRow][:currentCol])
+	if event.Key == termbox.KeySpace {
+		insertrune[currentCol] = rune(' ')
+	} else if event.Key == termbox.KeyTab {
+		insertrune[currentCol] = rune(' ')
+	} else {
+		insertrune[currentCol] = rune(event.Ch)
+	}
+	copy(insertrune[currentCol+1:], textBuffer[currentRow][currentCol:])
+	textBuffer[currentRow] = insertrune
+	currentCol++
+}
+
 // Scroling
-func scroolTextBuffer() {
+func scrollTextBuffer() {
 	if currentRow < offsetRow {
 		offsetRow = currentRow
 	}
@@ -138,12 +153,36 @@ func getKey() termbox.Event {
 func processKeyPress() {
 	keyEvent := getKey()
 	if keyEvent.Key == termbox.KeyEsc {
-		termbox.Close()
-		os.Exit(0)
+		mode = 0
 	} else if keyEvent.Ch != 0 {
+		if mode == 1 {
+			insertRune(keyEvent)
+			modified = true
+		} else {
+			switch keyEvent.Ch {
+			case 'q':
+				termbox.Close()
+				os.Exit(0)
+			case 'e':
+				mode = 1
+			}
+		}
 		//Handeling the chars in the form of rune
+
 	} else {
 		switch keyEvent.Key {
+		case termbox.KeyTab:
+			if mode == 1 {
+				for i := 0; i < 4; i++ {
+					insertRune(keyEvent)
+					modified = true
+				}
+			}
+		case termbox.KeySpace:
+			if mode == 1 {
+				insertRune(keyEvent)
+				modified = true
+			}
 		case termbox.KeyHome:
 			currentCol = 0
 		case termbox.KeyEnd:
@@ -205,7 +244,7 @@ func runEditor() {
 			COLS = 78
 		}
 		termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
-		scroolTextBuffer()
+		scrollTextBuffer()
 		displayTextBuffer()
 		displayStatusBar()
 		termbox.SetCursor(currentCol-offsetCol, currentRow-offsetRow)
