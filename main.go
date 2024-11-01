@@ -42,16 +42,38 @@ func readFile(filename string) {
 }
 
 func insertRune(event termbox.Event) {
+	// Ensure we have a valid row in the buffer
+	for currentRow >= len(textBuffer) {
+		textBuffer = append(textBuffer, []rune{})
+	}
+
+	// Ensure currentCol is valid
+	if currentCol > len(textBuffer[currentRow]) {
+		currentCol = len(textBuffer[currentRow])
+	}
+
+	// Create a new slice with space for one more rune
 	insertrune := make([]rune, len(textBuffer[currentRow])+1)
-	copy(insertrune[:currentCol], textBuffer[currentRow][:currentCol])
+
+	// Copy first part of the line (up to insertion point)
+	if currentCol > 0 {
+		copy(insertrune[:currentCol], textBuffer[currentRow][:currentCol])
+	}
+
+	// Insert the new rune
 	if event.Key == termbox.KeySpace {
 		insertrune[currentCol] = rune(' ')
 	} else if event.Key == termbox.KeyTab {
-		insertrune[currentCol] = rune(' ')
+		insertrune[currentCol] = rune('\t')
 	} else {
-		insertrune[currentCol] = rune(event.Ch)
+		insertrune[currentCol] = event.Ch
 	}
-	copy(insertrune[currentCol+1:], textBuffer[currentRow][currentCol:])
+
+	// Copy the remainder of the line if it exists
+	if currentCol < len(textBuffer[currentRow]) {
+		copy(insertrune[currentCol+1:], textBuffer[currentRow][currentCol:])
+	}
+
 	textBuffer[currentRow] = insertrune
 	currentCol++
 }
