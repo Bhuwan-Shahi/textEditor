@@ -40,6 +40,28 @@ func readFile(filename string) {
 		fmt.Println("Error reading file:", err)
 	}
 }
+func writeFile(filename string) {
+	file, err := os.Create(filename)
+	if err != nil {
+		fmt.Println(err)
+	}
+	defer file.Close()
+
+	writer := bufio.NewWriter(file)
+	for row, line := range textBuffer {
+		newLine := "\n"
+		if row == len(textBuffer)-1 {
+			newLine = ""
+		}
+		writeLine := string(line) + newLine
+		_, err = writer.WriteString(writeLine)
+		if err != nil {
+			fmt.Println("Error ", err)
+		}
+		writer.Flush()
+		modified = false
+	}
+}
 
 func insertRune(event termbox.Event) {
 	// Ensure we have a valid row in the buffer
@@ -225,6 +247,8 @@ func processKeyPress() {
 				os.Exit(0)
 			case 'e':
 				mode = 1
+			case 'w':
+				writeFile(sourceFile)
 			}
 		}
 		//Handeling the chars in the form of rune
