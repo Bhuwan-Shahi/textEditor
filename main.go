@@ -138,6 +138,59 @@ func insertLine() {
 	textBuffer = newTextBuffer
 }
 
+func copyLine() {
+	if currentRow < 0 || currentRow >= len(textBuffer) {
+		return
+	}
+	copiedLine := make([]rune, len(textBuffer[currentRow]))
+	copy(copiedLine, textBuffer[currentRow])
+
+	copyBuffer = [][]rune{copiedLine}
+}
+
+func deleteLine() {
+	copyLine()
+	if currentRow >= len(textBuffer) || len(textBuffer) < 2 {
+		return
+	}
+
+}
+func pasteLine() {
+	if len(copyBuffer) == 0 {
+		return
+	}
+
+	// Create new text buffer with room for the pasted line
+	newTextBuffer := make([][]rune, len(textBuffer)+1)
+
+	// Copy everything before current row
+	copy(newTextBuffer[:currentRow], textBuffer[:currentRow])
+
+	// Insert the copied line
+	newTextBuffer[currentRow] = make([]rune, len(copyBuffer[0]))
+	copy(newTextBuffer[currentRow], copyBuffer[0])
+
+	// Copy everything after current row
+	copy(newTextBuffer[currentRow+1:], textBuffer[currentRow:])
+
+	// Update the text buffer
+	textBuffer = newTextBuffer
+
+	// Move cursor to next line
+	currentRow++
+	currentCol = 0
+
+	// Mark as modified
+	modified = true
+}
+
+func pushBuffer() {
+
+}
+func pullBuffer() {
+
+}
+
 // Scroling
 func scrollTextBuffer() {
 	if currentRow < offsetRow {
@@ -249,7 +302,18 @@ func processKeyPress() {
 				mode = 1
 			case 'w':
 				writeFile(sourceFile)
+			case 'c':
+				copyLine()
+			case 'p':
+				pasteLine()
+			case 'd':
+				deleteLine()
+			case 's':
+				pushBuffer()
+			case 'l':
+				pullBuffer()
 			}
+
 		}
 		//Handeling the chars in the form of rune
 
@@ -344,7 +408,6 @@ func runEditor() {
 		termbox.SetCursor(currentCol-offsetCol, currentRow-offsetRow)
 		termbox.Flush()
 		processKeyPress()
-
 	}
 }
 
