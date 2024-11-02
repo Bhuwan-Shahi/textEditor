@@ -194,9 +194,15 @@ func pasteLine() {
 
 func pushBuffer() {
 
+	copyUndoBuffer := make([][]rune, len(textBuffer))
+	copy(copyUndoBuffer, textBuffer)
+	undoBuffer = copyUndoBuffer
 }
 func pullBuffer() {
-
+	if len(undoBuffer) == 0 {
+		return
+	}
+	textBuffer = undoBuffer
 }
 
 // Scroling
