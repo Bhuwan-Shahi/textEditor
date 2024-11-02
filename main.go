@@ -153,6 +153,14 @@ func deleteLine() {
 	if currentRow >= len(textBuffer) || len(textBuffer) < 2 {
 		return
 	}
+	newTextBuffer := make([][]rune, len(textBuffer)-1)
+	copy(newTextBuffer[:currentRow], textBuffer[:currentRow])
+	copy(newTextBuffer[currentRow:], textBuffer[currentRow+1:])
+	textBuffer = newTextBuffer
+	if currentRow > 0 {
+		currentRow--
+		currentCol = 0
+	}
 
 }
 func pasteLine() {
